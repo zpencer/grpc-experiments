@@ -16,33 +16,21 @@
  */
 
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
+import { Observable, Subject } from "rxjs";
 import { environment } from "../environments/environment";
-
-// When building with angular CLI in OSS:
-//   The standalone channelz.js file provides a proto symbol with the
-//   client and message types. goog.require() is effectively a noop.
-// When building with closure compiler:
-//   goog.require() imports the client and message libraries
-declare var goog: any;
-goog.require('proto.grpc.channelz.v1.ChannelzClient');
-goog.require('proto.grpc.channelz.v1.GetChannelRequest');
-goog.require('proto.grpc.channelz.v1.GetServerSocketsRequest');
-goog.require('proto.grpc.channelz.v1.GetServersRequest');
-goog.require('proto.grpc.channelz.v1.GetSocketRequest');
-goog.require('proto.grpc.channelz.v1.GetSubchannelRequest');
-goog.require('proto.grpc.channelz.v1.GetTopChannelsRequest');
-declare var proto: any;
+import * as grpcWeb from 'grpc-web';
+import * as channelz from './protos/channelz_grpc_web_pb';
+import * as channelz_pb from './protos/channelz_pb';
 
 @Injectable()
 export class ChannelzService {
   xsrfMeta: {};
-  client: any;
+  client: channelz.ChannelzClient;
 
   constructor() {
     this.xsrfMeta = ChannelzService.genXsrfMeta();
-    this.client = new proto.grpc.channelz.v1.ChannelzClient(
-      environment.grpcRemoteAddr);
+    this.client = new channelz.ChannelzClient(
+      environment.grpcRemoteAddr, {}, {});
   }
 
   private static genXsrfMeta(): any {
@@ -53,52 +41,76 @@ export class ChannelzService {
     return {"gdebug-xsrf-token": xsrfVal};
   }
 
-  private functionToObserver(rpcMethod: any, req: any): Observable<any> {
-    return new Observable(observer => {
-      // To use a method passed around as a parameter, the method must be bound
-      // to an instance of the object.
-      rpcMethod.bind(this.client)(req, this.xsrfMeta, function(err, response) {
-        observer.next(response);
-        observer.complete();
-      })
-      }
-    )
-  }
-
-  getServers(startId: number): Observable<{}> {
-    const req = new proto.grpc.channelz.v1.GetServersRequest();
+  getServers(startId: number): Observable<channelz_pb.GetServersResponse> {
+    const req = new channelz_pb.GetServersRequest();
     req.setStartServerId(startId);
-    return this.functionToObserver(this.client.getServers, req);
+    const sub: Subject<channelz_pb.GetServersResponse> = Subject.create();
+    this.client.getServers(req, this.xsrfMeta,
+      function(err: grpcWeb.Error, response: channelz_pb.GetServersResponse): void {
+        sub.next(response);
+        sub.complete();
+      });
+    return sub.asObservable();
   }
 
-  getServerSockets(serverId: number, startId: number): Observable<{}> {
-    const req = new proto.grpc.channelz.v1.GetServerSocketsRequest();
+  getServerSockets(serverId: number, startId: number): Observable<channelz_pb.GetServerSocketsResponse> {
+    const req = new channelz_pb.GetServerSocketsRequest();
     req.setServerId(serverId);
     req.setStartSocketId(startId);
-    return this.functionToObserver(this.client.getServerSockets, req);
+    const sub: Subject<channelz_pb.GetServerSocketsResponse> = Subject.create();
+    this.client.getServerSockets(req, this.xsrfMeta,
+      function(err: grpcWeb.Error, response: channelz_pb.GetServerSocketsResponse): void {
+        sub.next(response);
+        sub.complete();
+      });
+    return sub.asObservable();
   }
 
-  getTopChannels(startId: number): Observable<{}> {
-    const req = new proto.grpc.channelz.v1.GetTopChannelsRequest();
+  getTopChannels(startId: number): Observable<channelz_pb.GetTopChannelsResponse> {
+    const req = new channelz_pb.GetTopChannelsRequest();
     req.setStartChannelId(startId);
-    return this.functionToObserver(this.client.getTopChannels, req);
+    const sub: Subject<channelz_pb.GetTopChannelsResponse> = Subject.create();
+    this.client.getTopChannels(req, this.xsrfMeta,
+      function(err: grpcWeb.Error, response: channelz_pb.GetTopChannelsResponse): void {
+        sub.next(response);
+        sub.complete();
+      });
+    return sub.asObservable();
   }
 
-  getSubchannel(id: number): Observable<{}> {
-    const req = new proto.grpc.channelz.v1.GetSubchannelRequest();
+  getSubchannel(id: number): Observable<channelz_pb.GetSubchannelResponse> {
+    const req = new channelz_pb.GetSubchannelRequest();
     req.setSubchannelId(id);
-    return this.functionToObserver(this.client.getSubchannel, req);
+    const sub: Subject<channelz_pb.GetSubchannelResponse> = Subject.create();
+    this.client.getSubchannel(req, this.xsrfMeta,
+      function(err: grpcWeb.Error, response: channelz_pb.GetSubchannelResponse): void {
+        sub.next(response);
+        sub.complete();
+      });
+    return sub.asObservable();
   }
 
-  getChannel(id: number): Observable<{}> {
-    const req = new proto.grpc.channelz.v1.GetChannelRequest();
+  getChannel(id: number): Observable<channelz_pb.GetChannelResponse> {
+    const req = new channelz_pb.GetChannelRequest();
     req.setChannelId(id);
-    return this.functionToObserver(this.client.getChannel, req);
+    const sub: Subject<channelz_pb.GetChannelResponse> = Subject.create();
+    this.client.getChannel(req, this.xsrfMeta,
+      function(err: grpcWeb.Error, response: channelz_pb.GetChannelResponse): void {
+        sub.next(response);
+        sub.complete();
+      });
+    return sub.asObservable();
   }
 
-  getSocket(id: number): Observable<{}> {
-    const req = new proto.grpc.channelz.v1.GetSocketRequest();
+  getSocket(id: number): Observable<channelz_pb.GetSocketResponse> {
+    const req = new channelz_pb.GetSocketRequest();
     req.setSocketId(id);
-    return this.functionToObserver(this.client.getSocket, req);
+    const sub: Subject<channelz_pb.GetSocketResponse> = Subject.create();
+    this.client.getSocket(req, this.xsrfMeta,
+      function(err: grpcWeb.Error, response: channelz_pb.GetSocketResponse): void {
+        sub.next(response);
+        sub.complete();
+      });
+    return sub.asObservable();
   }
 }

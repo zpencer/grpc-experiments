@@ -23,7 +23,12 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": ["src/generated/channelz.js"]
+            "scripts": [
+              "src/generated/any_pb.js",
+              "src/generated/duration_pb.js",
+              "src/generated/timestamp_pb.js",
+              "src/generated/wrappers_pb.js"
+            ]
           },
           "configurations": {
             "production": {
